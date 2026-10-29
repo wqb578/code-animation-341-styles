@@ -1,0 +1,175 @@
+# 自定义非商业许可 / Custom Non-Commercial License
+
+**代码动画风格提示词（341 种）**
+
+Copyright (c) 2026 wqb578 / 俯仰观照（动画画风整理）
+来源：来自俯仰观照博主的动画画风整理
+
+---
+
+> 本许可是一份**自定义的非商业许可**，不是 OSI（Open Source Initiative）认可的标准开源许可，
+> 也不是 Creative Commons 的任何标准协议。请按下面的条款原文理解。
+>
+> This is a **custom non-commercial license**. It is not an OSI-approved open source license
+> and not a Creative Commons standard license. The Chinese text below is authoritative;
+> the English translation is provided for convenience only.
+
+---
+
+## 一、定义
+
+1. **「本作品」** 指本仓库中的全部内容，包括但不限于：`风格提示词/` 下的 341 个风格提示词
+   （`.md`）、193 张静帧（`.jpg`）、参考实现代码（含 `_公共函数.js`）、`风格挑选.html` 挑选网页、
+   `示例/` 中的示例代码与说明、`说明.md`、`许可与来源.md`、`_统计.json`，以及相关的文字、图片与数据。
+2. **「作者」** 指 wqb578 / 俯仰观照（动画画风整理）。
+3. **「你再分发」** 指以任何方式向他人提供本作品或其实质部分，包括转载、镜像、打包、嵌入、
+   分发衍生作品，无论是否修改。
+4. **「衍生作品」** 指基于本作品全部或实质部分修改、改写、翻译、剪辑、重排、合并、
+   或提炼其风格提示词后形成的任何作品。
+5. **「商业化 / 收费」** 指以直接或间接方式就该作品或其衍生作品向他人收取费用、索取对价，
+   或将其作为付费商品、付费服务、付费内容的一部分提供。详见第三条。
+
+## 二、授予的权利（免费）
+
+在遵守本许可全部条款的前提下，作者免费授予你以下权利，全球范围、非独占、不可撤销：
+
+1. **使用**：将本作品用于个人学习、研究、创作、教学、内部演示等任何**非收费**目的。
+2. **复制**：复制、下载、备份本作品。
+3. **修改**：修改、改写、翻译、裁剪、合并本作品，形成衍生作品。
+4. **免费再分发**：以**免费**方式再分发本作品或其衍生作品。
+5. **用于生成内容**：把提示词交给 AI 模型生成图片、视频、网页等内容，并对生成结果
+   享有你依据适用法律可以享有的权利。
+
+上述权利**不收取任何费用**，也**不要求你事先取得许可或付费**。
+
+## 三、禁止商业化（核心条款）
+
+**未经作者书面许可，你不得将本作品或其衍生作品用于任何商业化行为**，包括但不限于：
+
+1. 把本作品（全部或部分、原样或改写）**包装成课程、训练营、付费社群、付费专栏**出售；
+2. 把本作品**打包成付费 skills、付费提示词包、付费插件、付费模板、付费素材库**出售；
+3. 把本作品**做成付费产品或付费服务**的一部分（含 SaaS、订阅制工具、会员专享内容）；
+4. 以本作品为卖点进行**收费咨询、收费代做、收费交付**；
+5. 将本作品或其衍生作品上传至**需要付费才能访问**的平台、仓库、网盘或知识库；
+6. 以任何其他形式**直接或间接就本作品收费**。
+
+一句话：**可以白嫖，可以免费分享，不能拿去卖。**
+
+## 四、再分发与衍生作品的条件
+
+你若再分发本作品或基于本作品的衍生作品，必须同时满足：
+
+1. **保留署名**：明确标注来源，使用下面这句话（或与之等效、且不弱化的表述）：
+   > **来源：来自俯仰观照博主的动画画风整理**
+2. **附上本许可**：随作品附带本 `LICENSE` 全文（或指向本仓库 LICENSE 的稳定链接），
+   使接收者清楚知道其权利与限制。
+3. **不得加限**：不得对接收者施加比本许可更严格的额外限制，也不得声称对本作品拥有所有权。
+4. **同样免费分享**：你的衍生作品**必须同样免费分享**，并采用与本许可实质相同的条款；
+   不得因为加入了你的修改就转为收费。
+5. **标明修改**：若你修改过，请注明"已修改"及修改要点，不要让人误以为是作者原样发布。
+6. **不得暗示背书**：不得暗示作者为你的作品、产品或服务背书。
+
+## 五、第三方部分（MIT）
+
+本作品中来自开源项目的部分**不适用本许可**，仍适用其各自的原许可：
+
+| 系列 | 来源项目 | 许可 | 版权人 |
+|---|---|---|---|
+| L（59 种） | Lemo-Opuscar | MIT | Copyright (c) 2026 LemoLab |
+| V（15 种） | mg-styles-15 | MIT | Copyright (c) 2026 Vincentwei1021 |
+| X（31 种） | code-video | MIT | Copyright (c) 2026 Bae-ChangHyun |
+
+这些部分适用 **MIT 许可**的原文条款（许可全文见 `第三方许可/` 目录下的三个
+`*_LICENSE.txt`，清单见 `NOTICE.md`）。MIT 许可允许商业使用；但请注意：
+**把 MIT 部分与本作品其他部分混在一起再分发时，本作品其他部分仍受本许可约束。**
+
+其余部分（A–G、M、K、Z、H、R、O 各系列的中文整理与改写，以及 `风格挑选.html`、
+`示例/`、说明文档等）由作者创作或整理，适用本许可。
+
+## 六、免责声明
+
+本作品按**「现状」**提供，不附带任何明示或默示的担保，包括但不限于对适销性、
+特定用途适用性和非侵权性的担保。因使用本作品而产生的任何直接或间接损失，
+作者不承担责任。
+
+本作品中的风格提示词是对视觉风格的**文字描述**；其中涉及的影片名称、品牌名称、
+艺术家姓名等仅用于描述风格特征，相关商标与著作权归各自权利人所有，作者与这些
+权利人无隶属或背书关系。
+
+## 七、其他
+
+1. 若本许可的任何条款被认定为无效或不可执行，其余条款仍然有效。
+2. 作者保留未明确授予的一切权利。
+3. 本许可的**中文版本为准**，英文译本仅供参考。
+4. 如需商业化授权（例如把内容做进付费课程或付费产品），请先联系作者取得书面许可。
+
+---
+
+# English Translation (for reference only)
+
+**Code Animation Style Prompts (341 styles)**
+
+Copyright (c) 2026 wqb578 / 俯仰观照 (animation style compilation)
+Source: 来自俯仰观照博主的动画画风整理 ("compiled by the 俯仰观照 blogger")
+
+### 1. Definitions
+
+"Work" means all content in this repository: the 341 style prompts, 193 still frames,
+reference implementation code, the `风格挑选.html` picker page, the `示例/` examples,
+and the accompanying documentation. "You" means any person or entity exercising rights
+under this license. "Redistribute" means making the Work or a substantial part of it
+available to others in any form. "Derivative Work" means anything created by modifying,
+rewriting, translating, re-editing or extracting from the Work.
+
+### 2. Grant (free of charge)
+
+Subject to this license, you are granted a worldwide, non-exclusive, royalty-free right to:
+use the Work for any non-commercial purpose; copy it; modify it; and redistribute it
+**free of charge**. You may feed the prompts to AI models and own whatever rights you
+may have in the generated output under applicable law.
+
+### 3. Prohibition on commercialization
+
+You may **not** commercialize the Work or any Derivative Work without the author's prior
+written permission. This includes, without limitation: packaging it into paid courses,
+bootcamps, paid communities or paid columns; bundling it into paid skills, paid prompt
+packs, paid plugins, paid templates or paid asset libraries; including it in a paid
+product or paid service (including SaaS, subscriptions or members-only content); using
+it to sell consulting, done-for-you work or deliverables; uploading it to any platform,
+repository or drive that requires payment for access; or charging for it in any other
+direct or indirect way.
+
+In one line: **free to use, free to share, never for sale.**
+
+### 4. Conditions for redistribution and derivative works
+
+You must (a) credit the source with the statement
+**「来源：来自俯仰观照博主的动画画风整理」** (or an equivalent, non-weakened statement);
+(b) include this license (or a stable link to it) with any copy you distribute;
+(c) impose no additional restrictions and claim no ownership; (d) **share your Derivative
+Work for free** under terms substantially equivalent to this license; (e) mark any
+changes you made; and (f) not imply that the author endorses you or your product.
+
+### 5. Third-party portions
+
+The L, V and X series are derived from the MIT-licensed open source projects
+Lemo-Opuscar (Copyright (c) 2026 LemoLab), mg-styles-15 (Copyright (c) 2026
+Vincentwei1021) and code-video (Copyright (c) 2026 Bae-ChangHyun) respectively. Those
+portions remain under the MIT License, reproduced in the `第三方许可/` directory and
+listed in `NOTICE.md`. MIT permits commercial use; however, when redistributed together
+with the rest of the Work, the remaining portions stay governed by this license.
+
+### 6. Disclaimer
+
+The Work is provided "AS IS", without warranty of any kind, express or implied,
+including but not limited to the warranties of merchantability, fitness for a particular
+purpose and non-infringement. In no event shall the author be liable for any claim,
+damages or other liability arising from the use of the Work. Film titles, brand names
+and artist names mentioned in the prompts describe visual styles only; all trademarks
+and copyrights remain with their respective owners.
+
+### 7. Miscellaneous
+
+If any provision is held unenforceable, the remaining provisions stay in effect. All
+rights not expressly granted are reserved. The Chinese text prevails. For commercial
+licensing, contact the author in writing first.

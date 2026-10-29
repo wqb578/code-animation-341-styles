@@ -1,0 +1,15 @@
+# 系统垃圾文件（仅忽略操作系统生成的杂项，不影响原有内容）
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# 编辑器 / IDE 临时文件
+.vscode/
+.idea/
+*.swp
+*~

@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>光速穿梭 · 爆炸 · 重聚</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  canvas { width: 100vw; height: 56.25vw; max-height: 100vh; max-width: 177.78vh; display: block; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script>
+(() => {
+  // ---------- 常量 ----------
+  const W = 1920, H = 1080, CX = 960, CY = 540;
+  const N = 4000, TOTAL = 12, L = 6000, F0 = 900;
+  const TITLE = '俯仰观照';
+  const SUBTITLE = '于江流见瞬息，于树木见永恒';
+  const FONT = '"Noto Serif SC","Songti SC","SimSun",serif';
+
+  // ---------- 工具 ----------
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const rand = mulberry32(7);
+  const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+  const smoothstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  const mixC = (c1, c2, k) => [c1[0] + (c2[0] - c1[0]) * k, c1[1] + (c2[1] - c1[1]) * k, c1[2] + (c2[2] - c1[2]) * k];
+  const css = c => `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})`;
+
+  // ---------- 镜头 ----------
+  const V0 = 80, V1 = 2600;
+  const z1 = t => V0 * t + (V1 - V0) * (3 / 3.2) * Math.pow(Math.min(t, 3) / 3, 3.2) + V1 * Math.max(0, t - 3);
+  const Z5 = z1(5.0), zB = Z5 + 780, ZC = zB + 900, Z3 = z1(3), ZT = zB - 700;
+  function camZ(t) {
+    if (t <= 5.0) return z1(t);
+    if (t <= 5.6) { const u = (t - 5.0) / 0.6; return Z5 + 2600 * 0.6 * (u - u * u / 2); }
+    if (t <= 8.0) { const v = (t - 5.6) / 2.4; return zB - 2200 * (1 - (1 - v) * (1 - v)); }
+    return zB - 2200 - 120 * (t - 8.0);
+  }
+  function speedAt(t) {
+    if (t < 3) return 80 + 2520 * Math.pow(t / 3, 2.2);
+    if (t < 5) return 2600;
+    if (t < 5.6) return 2600 * (1 - (t - 5) / 0.6);
+    return 0;
+  }
+  const rings = [];
+  for (let k = 0; k < 5; k++) {
+    rings.push({ z: Z3 + 2600 * (0.3 + 0.42 * k), tk: 3.3 + 0.42 * k, col: k % 2 === 0 ? [125, 249, 255] : [255, 213, 154] });
+  }
+  const RING_R = 260;
+  function focal(t) {
+    let f = F0;
+    for (const r of rings) if (t >= r.tk) f += 260 * Math.exp(-9 * (t - r.tk));
+    if (t >= 5.6) f += 520 * Math.exp(-6 * (t - 5.6));
+    return f;
+  }
+  function roll(t) {
+    let r = 0.02 * Math.sin(1.7 * t);
+    if (t >= 5.6) r += 0.12 * Math.sin(2 * Math.PI * 0.9 * (t - 5.6)) * Math.exp(-2.2 * (t - 5.6));
+    return r;
+  }
+  function shake(t) {
+    const amp = t >= 5.6 ? 22 * Math.exp(-3.2 * (t - 5.6)) : 0;
+    return [Math.sin(53 * t) * amp, Math.cos(47 * t) * amp];
+  }
+
+  // ---------- 粒子参数（顺序固定，保证可复现） ----------
+  const P = new Array(N);
+  for (let i = 0; i < N; i++) {
+    const a = rand() * Math.PI * 2;
+    const rho = 220 + 1280 * Math.pow(rand(), 0.8);
+    const zw = rand() * L;
+    const s = rand();
+    const cls = rand() < 0.15 ? 1 : 0;
+    const ph = rand() * Math.PI * 2;
+    const fq = 0.6 + rand();
+    const zz = -0.55 + 1.55 * rand();
+    const phi = rand() * Math.PI * 2;
+    const rxy = Math.sqrt(Math.max(0, 1 - zz * zz));
+    const dir = [rxy * Math.cos(phi), rxy * Math.sin(phi), zz];
+    const mag = 300 + 2600 * Math.pow(rand(), 1.6);
+    const sw = (1.2 + 2 * rand()) * (rand() < 0.5 ? -1 : 1);
+    P[i] = { a, rho, zw, s, cls, ph, fq, dir, mag, sw, tx: 0, ty: 0 };
+  }
+
+  // ---------- 标题目标点 ----------
+  (function buildTitleTargets() {
+    const oc = document.createElement('canvas');
+    oc.width = 1200; oc.height = 400;
+    const g = oc.getContext('2d');
+    g.fillStyle = '#fff';
+    g.font = 'bold 280px ' + FONT;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(TITLE, 600, 205);
+    const data = g.getImageData(0, 0, 1200, 400).data;
+    const pts = [];
+    for (let y = 0; y < 400; y += 3) {
+      for (let x = 0; x < 1200; x += 3) {
+        if (data[(y * 1200 + x) * 4 + 3] > 128) pts.push([(x - 600) * 2.093, (y - 200) * 2.093]);
+      }
+    }
+    if (pts.length === 0) pts.push([0, 0]);
+    for (let i = pts.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      const tmp = pts[i]; pts[i] = pts[j]; pts[j] = tmp;
+    }
+    for (let i = 0; i < N; i++) {
+      if (i < pts.length) { P[i].tx = pts[i][0]; P[i].ty = pts[i][1]; }
+      else {
+        const q = pts[i % pts.length];
+        P[i].tx = q[0] + (rand() * 2 - 1) * 3;
+        P[i].ty = q[1] + (rand() * 2 - 1) * 3;
+      }
+    }
+  })();
+
+  // ---------- 位置 ----------
+  const out = { X: 0, Y: 0, d: 0 };
+  function place(p, t, o) {
+    const cz = camZ(t);
+    if (t < 5.6) {
+      const k = 1 - 0.92 * smoothstep(5.0, 5.6, t);
+      o.X = p.rho * Math.cos(p.a) * k;
+      o.Y = p.rho * Math.sin(p.a) * k;
+      o.d = (((p.zw - cz) % L) + L) % L + 60;
+      return o;
+    }
+    if (t <= 8) {
+      const tau = Math.min(1, (t - 5.6) / 2.4);
+      const g = 1 - Math.pow(1 - tau, 3);
+      o.X = p.dir[0] * p.mag * g;
+      o.Y = p.dir[1] * p.mag * g;
+      o.d = ZC + p.dir[2] * p.mag * g - cz;
+      return o;
+    }
+    const e = smoothstep(8, 10, t);
+    const Ex = p.dir[0] * p.mag, Ey = p.dir[1] * p.mag, Ez = ZC + p.dir[2] * p.mag;
+    const Qx = Ex + (p.tx - Ex) * e, Qy = Ey + (p.ty - Ey) * e, Qz = Ez + (ZT - Ez) * e;
+    const th = Math.sin(Math.PI * e) * p.sw, c = Math.cos(th), s = Math.sin(th);
+    o.X = Qx * c - Qy * s;
+    o.Y = Qx * s + Qy * c;
+    o.d = Qz - cz;
+    return o;
+  }
+
+  function particleColor(p, t) {
+    const base = p.cls === 1 ? [255, 213, 154] : [191, 232, 255];
+    if (t < 5.0) return base;
+    if (t < 5.6) return mixC(base, [255, 255, 255], smoothstep(5.0, 5.6, t));
+    if (t < 8) {
+      const tau = (t - 5.6) / 2.4;
+      return tau < 0.4 ? mixC([255, 255, 255], [255, 176, 74], tau / 0.4) : mixC([255, 176, 74], [255, 61, 110], (tau - 0.4) / 0.6);
+    }
+    if (t < 10) return mixC([255, 61, 110], [246, 235, 208], smoothstep(8, 10, t));
+    return [246, 235, 208];
+  }
+
+  // ---------- 绘制 ----------
+  const cv = document.getElementById('c');
+  const ctx = cv.getContext('2d');
+  const A = { X: 0, Y: 0, d: 0 }, B = { X: 0, Y: 0, d: 0 };
+
+  function draw(tIn) {
+    const t = ((tIn % TOTAL) + TOTAL) % TOTAL;
+    const f = focal(t);
+    const cz = camZ(t);
+    const sf = 0.45 + 0.55 * clamp(speedAt(t) / 2600, 0, 1);
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+
+    // 1. 背景
+    ctx.fillStyle = '#05060A';
+    ctx.fillRect(0, 0, W, H);
+    const bg = ctx.createRadialGradient(CX, CY, 0, CX, CY, 700);
+    bg.addColorStop(0, `rgba(30,60,90,${0.28 * sf * (t < 5.6 ? 1 : 0.4)})`);
+    bg.addColorStop(1, 'rgba(5,6,10,0)');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // 镜头变换
+    const [shx, shy] = shake(t);
+    ctx.save();
+    ctx.translate(CX + shx, CY + shy);
+    ctx.rotate(roll(t));
+    ctx.translate(-CX, -CY);
+
+    // 2. 加色
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.lineCap = 'round';
+
+    // 3. 粒子
+    const DT = t < 5.6 ? 0.03 : 0.06 - 0.03 * smoothstep(8, 9, t);
+    const tp = Math.max(t - DT, t >= 5.6 ? 5.6 : 0);
+    const fp = focal(tp);
+    const tau = clamp((t - 5.6) / 2.4, 0, 1);
+    for (let i = 0; i < N; i++) {
+      const p = P[i];
+      place(p, t, A);
+      place(p, tp, B);
+      if (A.d < 30 || B.d < 30 || Math.abs(A.d - B.d) > 500) continue;
+      let alpha;
+      if (t < 5.6) alpha = clamp(Math.pow(clamp(1 - A.d / L, 0, 1), 1.4) * (0.25 + 0.55 * p.s) * sf * 1.6, 0, 1);
+      else alpha = 0.9 * (0.7 + 0.3 * Math.sin(p.fq * t + p.ph)) * (t < 8 ? 1 - 0.4 * tau : 0.9);
+      if (alpha <= 0.003) continue;
+      const lw = t < 5.6
+        ? (0.9 + 1.8 * p.s) * clamp(Math.sqrt(900 / A.d), 0.5, 2.2)
+        : (2 + 3 * p.s) * clamp(Math.sqrt(900 / A.d), 0.6, 2.2);
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = css(particleColor(p, t));
+      ctx.lineWidth = lw;
+      ctx.beginPath();
+      ctx.moveTo(CX + fp * B.X / B.d, CY + fp * B.Y / B.d);
+      ctx.lineTo(CX + f * A.X / A.d + 0.01, CY + f * A.Y / A.d);
+      ctx.stroke();
+    }
+
+    // 4. 光环（只在爆炸前）
+    if (t < 5.6) {
+      for (const r of rings) {
+        const d = r.z - cz;
+        if (d < 40 || d > 5200) continue;
+        const lw = clamp(6 * 900 / d, 1.5, 16);
+        const al = 0.6 * clamp(1 - d / 5200, 0, 1);
+        ctx.beginPath();
+        for (let s = 0; s <= 96; s++) {
+          const th = (s / 96) * Math.PI * 2;
+          const x = CX + f * RING_R * Math.cos(th) / d, y = CY + f * RING_R * Math.sin(th) / d;
+          if (s === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = css(r.col);
+        ctx.globalAlpha = al; ctx.lineWidth = lw; ctx.stroke();
+        ctx.globalAlpha = al / 4; ctx.lineWidth = lw * 3; ctx.stroke();
+      }
+    }
+
+    // 5. 核心的光
+    if (t >= 4.4) {
+      const dc = ZC - cz;
+      if (dc > 40) {
+        let rad = 140000 / dc * (0.4 + 0.6 * smoothstep(4.4, 5.6, t)) * (f / 900);
+        if (t >= 5.6) rad *= Math.exp(-3 * (t - 5.6));
+        if (rad > 0.5) {
+          const cg = ctx.createRadialGradient(CX, CY, 0, CX, CY, rad);
+          cg.addColorStop(0, 'rgba(255,255,255,0.9)');
+          cg.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.globalAlpha = 1; ctx.fillStyle = cg;
+          ctx.beginPath(); ctx.arc(CX, CY, rad, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+    }
+
+    // 6. 冲击波
+    if (t >= 5.6) {
+      const ts = clamp((t - 5.6) / 1.2, 0, 1);
+      const Rw = 3600 * (1 - Math.pow(1 - ts, 3));
+      const dd = ZC - cz;
+      if (ts < 1 && dd > 40) {
+        ctx.globalAlpha = 0.8 * (1 - ts);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1 + 8 * (1 - ts);
+        ctx.beginPath(); ctx.arc(CX, CY, f * Rw / dd, 0, Math.PI * 2); ctx.stroke();
+      }
+    }
+    ctx.restore();
+
+    // 7. 屏幕层
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    let flash = t >= 5.6 ? 0.95 * Math.exp(-9 * (t - 5.6)) : 0.7 * smoothstep(5.4, 5.6, t);
+    for (const r of rings) if (t >= r.tk) flash += 0.3 * Math.exp(-14 * (t - r.tk));
+    if (t >= 10) flash += 0.35 * Math.exp(-8 * (t - 10));
+    flash = Math.min(1, flash);
+    if (flash > 0.002) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = flash; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+    }
+
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const ta = 0.9 * smoothstep(9.7, 10.3, t) * (1 - smoothstep(11.4, 12, t));
+    if (ta > 0.002) {
+      ctx.globalAlpha = ta; ctx.fillStyle = '#F6EBD0'; ctx.font = 'bold 300px ' + FONT;
+      ctx.fillText(TITLE, 960, 545);
+    }
+    const sa = 0.85 * smoothstep(9.6, 10.4, t) * (1 - smoothstep(11.4, 12, t));
+    if (sa > 0.002) {
+      ctx.globalAlpha = sa; ctx.fillStyle = '#EDE6D6'; ctx.font = '40px ' + FONT;
+      ctx.fillText(SUBTITLE, 960, 790);
+    }
+
+    const vg = ctx.createRadialGradient(CX, CY, 400, CX, CY, 1150);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.55)');
+    ctx.globalAlpha = 1; ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+
+    const fade = clamp((1 - smoothstep(0, 0.35, t)) + smoothstep(11.4, 12, t), 0, 1);
+    if (fade > 0.002) { ctx.globalAlpha = fade; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); }
+    ctx.globalAlpha = 1;
+  }
+
+  window.__draw = draw; window.__canvas = cv;
+
+  // ---------- 播放 ----------
+  const q = new URLSearchParams(location.search).get('t');
+  if (q !== null && q !== '' && !isNaN(parseFloat(q))) { draw(parseFloat(q)); return; }
+  let start = performance.now(), paused = false, pausedAt = 0;
+  addEventListener('keydown', e => {
+    if (e.code !== 'Space') return;
+    e.preventDefault();
+    if (paused) { start = performance.now() - pausedAt * 1000; paused = false; }
+    else { pausedAt = (performance.now() - start) / 1000; paused = true; }
+  });
+  function loop(now) {
+    if (!paused) draw((now - start) / 1000);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

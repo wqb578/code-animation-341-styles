@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>INK &amp; THUNDER &mdash; a comic book come to life</title>
+<!--
+  Hero silhouette derived from the public-domain (CC0) clip art
+  "Super hero flying silhouette" by laobc, openclipart.org/detail/66385,
+  recoloured and re-composed for this animation.
+-->
+<style>
+  :root{
+    --ink:#15110e;
+    --paper:#f2e7d0;
+    --paper-2:#e6d6b6;
+    --red:#df2816;
+    --red-dark:#8d0f07;
+    --yellow:#ffc81f;
+    --cyan:#59c7d9;
+    --sky-a:#8fd2df;
+    --sky-b:#c6e8e4;
+    --sky-c:#f8ddae;
+    --display: Impact, "Haettenschweiler", "Arial Narrow", "Arial Black", sans-serif;
+    --letter: "Comic Sans MS", "Comic Sans", "Segoe Print", "Segoe UI", sans-serif;
+    --block: "Arial Black", Arial, "Segoe UI", sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:#070505}
+  body{font-family:var(--block);-webkit-font-smoothing:antialiased}
+
+  #stage{
+    position:absolute; left:50%; top:50%;
+    width:1600px; height:900px;
+    transform-origin:50% 50%;
+    overflow:hidden; background:#070505;
+  }
+  #backdrop{position:absolute; inset:0;
+    background:radial-gradient(120% 95% at 50% 42%, #2c2119 0%, #160f0b 55%, #060404 100%)}
+  #backdrop::after{content:""; position:absolute; inset:-30%;
+    background-image:radial-gradient(circle at 50% 50%, #2f8fa2 1.1px, transparent 1.6px);
+    background-size:16px 16px; opacity:.10; mix-blend-mode:screen; transform:rotate(12deg)}
+
+  /* ============ flipping pages ============ */
+  #flipStack{position:absolute; inset:0; perspective:2200px; perspective-origin:38% 50%; z-index:10}
+  .sheet{position:absolute; inset:0; display:none; transform-origin:left center;
+    backface-visibility:hidden; background:linear-gradient(100deg,#f6ecd8 0%,var(--paper) 45%,#eadcbe 100%);
+    box-shadow:0 0 110px rgba(0,0,0,.65); will-change:transform}
+  .sheet .edge{position:absolute; right:0; top:0; width:22px; height:100%;
+    background:linear-gradient(to left, rgba(120,92,50,.28), rgba(120,92,50,0))}
+  .ghost{position:absolute; inset:30px; background:var(--paper);
+    box-shadow:inset 0 0 80px rgba(146,110,52,.16)}
+  .gp-head{position:absolute; left:0; top:0; height:70px; width:100%; display:flex; align-items:center; gap:26px}
+  .gp-mast{background:var(--red); color:var(--paper); font-family:var(--display); font-size:38px;
+    padding:1px 18px 0; border:3px solid var(--ink); box-shadow:4px 4px 0 rgba(21,17,14,.85); line-height:1.12}
+  .gp-no{font-family:var(--display); font-size:34px; color:var(--ink)}
+  .gp-meta{font-size:14px; letter-spacing:2px; color:var(--ink); opacity:.75; margin-left:auto}
+  .gp-panel{position:absolute; border:6px solid var(--ink); overflow:hidden}
+  .gp-dots{position:absolute; inset:-20%;
+    background-image:radial-gradient(circle at 50% 50%, #15110e 30%, transparent 32%);
+    background-size:14px 14px; opacity:.26; mix-blend-mode:multiply; transform:rotate(14deg)}
+  .gp-city{position:absolute; left:0; bottom:0; width:100%; height:64%; background:#161219}
+  .gp-star{position:absolute; inset:0; background:#ffc81f}
+  .gp-pow{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-size:84px; color:#15110e; letter-spacing:-1px}
+  .gp-cap{position:absolute; left:14px; top:14px; background:var(--yellow); border:4px solid var(--ink);
+    padding:6px 12px 7px; font-size:16px; letter-spacing:.6px; color:#14110e; text-transform:uppercase;
+    box-shadow:4px 4px 0 rgba(21,17,14,.2)}
+
+  /* ============ camera ============ */
+  #cam{position:absolute; inset:0; transform-origin:50% 46%; will-change:transform; z-index:3}
+
+  /* ============ page ============ */
+  #page{position:absolute; left:60px; top:20px; width:1480px; height:860px;
+    background:var(--paper);
+    box-shadow:0 26px 70px rgba(0,0,0,.62), 0 0 0 2px var(--ink);
+    will-change:transform}
+  #page .stain{position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(38% 24% at 93% 5%, rgba(146,110,52,.13), transparent 70%),
+      radial-gradient(28% 20% at 3% 94%, rgba(146,110,52,.11), transparent 70%),
+      radial-gradient(55% 16% at 50% 0%, rgba(120,90,45,.06), transparent 70%)}
+  #page .crease{position:absolute; inset:0; pointer-events:none; opacity:.35;
+    background:linear-gradient(97deg, transparent 48.6%, rgba(120,92,50,.18) 49.2%, rgba(255,255,255,.25) 49.6%, transparent 50.3%)}
+
+  .crop{position:absolute; width:28px; height:28px; border:2px solid #bda77c; opacity:.5}
+  .crop.tl{left:5px; top:5px; border-right:0; border-bottom:0}
+  .crop.br{right:5px; bottom:5px; border-left:0; border-top:0}
+
+  /* masthead */
+  #masthead{position:absolute; left:24px; top:24px; width:1432px; height:70px; display:flex; align-items:center; gap:26px}
+  .mh-slab{background:var(--red); color:var(--paper); font-family:var(--display); font-size:44px;
+    letter-spacing:1.5px; padding:2px 20px 0; line-height:1.12; box-shadow:5px 5px 0 rgba(21,17,14,.9);
+    transform:rotate(-.6deg); border:3px solid var(--ink)}
+  .mh-right{margin-left:auto; display:flex; align-items:baseline; gap:20px; color:var(--ink)}
+  .mh-no{font-family:var(--display); font-size:50px; line-height:1; letter-spacing:1px}
+  .mh-meta{font-size:15px; letter-spacing:2.2px}
+  .mh-rule{position:absolute; left:24px; top:98px; width:1432px; height:3px; background:var(--ink); opacity:.85}
+
+  /* panels */
+  .panel{position:absolute; border:6px solid var(--ink); overflow:hidden; background:#fff}
+  #panelA{left:24px; top:104px; width:1432px; height:484px;
+    background:linear-gradient(var(--sky-a), var(--sky-b) 55%, var(--sky-c))}
+  #panelB{left:24px; top:598px; width:1432px; height:190px;
+    background:linear-gradient(#f8b04a 0%, #ee7455 45%, #9c2f4c 100%)}
+
+  /* halftone */
+  .halftone{position:absolute; inset:-25%;
+    background-image:radial-gradient(circle at 50% 50%, var(--ink) 30%, transparent 32%);
+    background-size:15px 15px; opacity:.26; mix-blend-mode:multiply; transform:rotate(14deg);
+    will-change:background-position}
+  .halftone.h2{background-size:15px 15px; opacity:.18; background-position:7.5px 7.5px}
+  .halftone.mask{-webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,.06), #000 72%);
+    mask-image:linear-gradient(to bottom, rgba(0,0,0,.06), #000 72%)}
+  .halftone.city{inset:-10%; background-image:radial-gradient(circle at 50% 50%, #7adae8 36%, transparent 38%);
+    background-size:6px 6px; opacity:.16; mix-blend-mode:screen; transform:rotate(8deg);
+    -webkit-mask-image:linear-gradient(to top, #000 18%, transparent 60%);
+    mask-image:linear-gradient(to top, #000 18%, transparent 60%)}
+
+  /* rays */
+  #rays{position:absolute; left:58%; top:38%; width:2000px; height:2000px;
+    margin-left:-1000px; margin-top:-1000px;
+    background:repeating-conic-gradient(from 0deg at 50% 50%,
+      rgba(255,200,31,.9) 0deg 5.2deg, rgba(255,200,31,0) 5.2deg 13.2deg);
+    -webkit-mask-image:radial-gradient(circle, #000 8%, rgba(0,0,0,.9) 34%, transparent 68%);
+    mask-image:radial-gradient(circle, #000 8%, rgba(0,0,0,.9) 34%, transparent 68%);
+    opacity:.75; will-change:transform}
+
+  /* city */
+  .city{position:absolute; left:0; bottom:0; width:100%; height:56%; display:block}
+  .city .near{fill:#161219}
+  .city .far{fill:#4a5f86; opacity:.34}
+  .city .line{stroke:#161219; stroke-width:5; fill:none; stroke-linecap:round}
+  .haze{position:absolute; left:0; right:0; bottom:34%; height:120px; pointer-events:none;
+    background:linear-gradient(to top, rgba(248,221,174,.85), rgba(248,221,174,0))}
+  .beam{position:absolute; bottom:13%; width:70px; height:360px;
+    background:linear-gradient(to top, rgba(255,247,214,.6), rgba(255,247,214,0) 80%);
+    -webkit-clip-path:polygon(44% 100%, 56% 100%, 100% 0, 0 0);
+    clip-path:polygon(44% 100%, 56% 100%, 100% 0, 0 0);
+    transform-origin:50% 100%; opacity:.5}
+  .beam.b1{left:15%}
+  .beam.b2{left:73%; height:280px}
+
+  /* speed lines (inside hero panel only) */
+  #speedlines{position:absolute; inset:0; opacity:0; will-change:transform,opacity}
+  #speedlines line{stroke:#14110e; stroke-linecap:round}
+
+  /* hero */
+  .heroBox{position:absolute; will-change:transform,opacity}
+  #hero{left:620px; top:230px; width:400px; height:267px; margin:-133px 0 0 -200px; z-index:4}
+  #heroX{left:644px; top:334px; width:400px; height:267px; margin:-133px 0 0 -200px; z-index:12}
+  .heroBox svg{width:100%; height:100%; display:block; overflow:visible}
+  #heroX{filter:drop-shadow(14px 18px 0 rgba(21,17,14,.2))}
+  .ghostHero{position:absolute; will-change:transform,opacity; z-index:3; pointer-events:none}
+  .ghostHero svg{width:100%; height:100%; display:block; overflow:visible}
+  #ghostA,#ghostB{left:644px; top:334px; width:400px; height:267px; margin:-133px 0 0 -200px; z-index:11}
+  #heroG1,#heroG2{left:620px; top:230px; width:400px; height:267px; margin:-133px 0 0 -200px}
+  #heroG1{z-index:3}
+  #heroG2{z-index:2}
+
+  /* balloon */
+  .balloon{position:absolute; background:#fdf8ea; color:#12100e; border:5px solid var(--ink);
+    border-radius:26px 24px 24px 22px; padding:12px 22px 14px;
+    font-family:var(--letter); font-weight:700; font-size:28px; line-height:1.12;
+    text-transform:uppercase; letter-spacing:.4px; transform-origin:62% 100%;
+    box-shadow:7px 8px 0 rgba(21,17,14,.16); opacity:0}
+  .balloon::after{content:""; position:absolute; left:66px; bottom:-31px;
+    border-left:10px solid transparent; border-right:34px solid transparent; border-top:34px solid var(--ink)}
+  .balloon::before{content:""; position:absolute; left:73px; bottom:-20px; z-index:1;
+    border-left:4px solid transparent; border-right:24px solid transparent; border-top:24px solid #fdf8ea}
+  #bal1{right:26px; top:16px; max-width:430px}
+  #bal2{right:96px; top:70px; max-width:360px; font-size:26px; transform-origin:20% 100%}
+  #bal2::after{left:auto; right:80px; bottom:-31px}
+  #bal2::before{left:auto; right:87px; bottom:-20px}
+
+  /* captions */
+  .cap{position:absolute; background:var(--yellow); color:#14110e; border:4px solid var(--ink);
+    padding:9px 14px 10px; font-size:18px; line-height:1.28; letter-spacing:.3px;
+    text-transform:uppercase; max-width:450px; transform:rotate(-1.4deg); transform-origin:0 0;
+    box-shadow:5px 5px 0 rgba(21,17,14,.2); opacity:0}
+  #cap1{left:16px; top:14px}
+  #cap2{right:16px; bottom:14px; transform:rotate(1.1deg); transform-origin:100% 100%; max-width:400px}
+  #capB{left:14px; bottom:12px; font-size:17px; max-width:520px; transform:rotate(-.8deg); z-index:6}
+
+  /* burst */
+  #burst{position:absolute; left:864px; top:392px; width:790px; height:540px;
+    margin-left:-395px; margin-top:-270px; opacity:0; z-index:9; will-change:transform,opacity}
+  #burst svg{position:absolute; inset:0; width:100%; height:100%; overflow:visible}
+  #burst .btext{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-size:92px; letter-spacing:-1px; color:#14110e; white-space:nowrap;
+    text-shadow:4px 5px 0 rgba(253,248,234,.5)}
+  #burst .btext span{display:inline-block; transform-origin:50% 80%}
+  .bghost{position:absolute; inset:0; opacity:0; mix-blend-mode:multiply; will-change:opacity}
+  .bghost svg{position:absolute; inset:0; width:100%; height:100%; overflow:visible}
+
+  /* impact rings + sparks + shards */
+  .ring{position:absolute; left:864px; top:392px; width:260px; height:260px; margin:-130px 0 0 -130px;
+    border:9px solid rgba(253,248,234,.95); border-radius:50%; opacity:0; will-change:transform,opacity; z-index:10}
+  .spark{position:absolute; left:864px; top:392px; width:40px; height:40px; margin:-20px 0 0 -20px;
+    background:var(--yellow); opacity:0; will-change:transform,opacity; z-index:10}
+  .shard{position:absolute; width:44px; height:32px; background:var(--paper); border:3px solid var(--ink);
+    opacity:0; z-index:13; will-change:transform,opacity}
+
+  /* flash */
+  #flash{position:absolute; inset:0; background:#fffdf4; opacity:0; pointer-events:none;
+    mix-blend-mode:screen; z-index:20}
+
+  /* banner */
+  #banner{position:absolute; left:24px; top:798px; width:1432px; height:44px;
+    background:var(--ink); color:var(--paper); display:flex; align-items:center; gap:16px; padding:0 18px;
+    font-size:16px; letter-spacing:1.6px}
+  #banner .star{color:var(--red); font-size:21px; line-height:1}
+  #banner .next{color:var(--yellow); letter-spacing:2.4px}
+  #banner .title{font-family:var(--display); font-size:26px; letter-spacing:1.4px; color:var(--paper)}
+  #banner .price{margin-left:auto; border:2px solid var(--paper); padding:1px 9px; font-size:13px; letter-spacing:1.6px; opacity:.9}
+
+  /* panel B scene */
+  #panelB .sun{position:absolute; right:272px; top:6px; width:164px; height:164px; border-radius:50%; z-index:1;
+    background:radial-gradient(circle at 50% 45%, #ffdb6b 0%, #fba23c 55%, #ef6a3c 100%); will-change:transform}
+  #panelB .sun-dots{position:absolute; right:252px; top:-6px; width:204px; height:184px; border-radius:50%; z-index:1;
+    background-image:radial-gradient(circle at 50% 50%, #14110e 33%, transparent 35%); background-size:8px 8px;
+    opacity:.30; mix-blend-mode:multiply; will-change:background-position}
+  #panelB .minihero{position:absolute; right:420px; top:4px; width:132px; z-index:2; will-change:transform}
+  #panelB .trail{position:absolute; right:536px; top:52px; width:260px; z-index:2;
+    stroke:#14110e; stroke-width:4; stroke-dasharray:2 16; stroke-linecap:round; fill:none; opacity:.45}
+  #panelB .roof{position:absolute; left:0; bottom:0; width:100%; height:66%; display:block; z-index:3}
+  #panelB .roof path{fill:#14110e}
+
+  /* ============ cover ============ */
+  #cover{position:absolute; inset:0; opacity:0; will-change:transform,opacity; z-index:30}
+  #cover-dim{position:absolute; inset:0; background:radial-gradient(80% 80% at 50% 46%, rgba(8,6,5,0), rgba(8,6,5,.38))}
+  #coverGlow{position:absolute; left:50%; top:50%; width:1700px; height:1100px; margin:-550px 0 0 -850px;
+    background:radial-gradient(46% 46% at 50% 50%, rgba(255,186,64,.20), rgba(223,40,22,.13) 46%, transparent 72%);
+    opacity:0; will-change:opacity}
+  #underPage{position:absolute; inset:0; z-index:2; display:none; background:var(--paper); overflow:hidden}
+  #underPage .ghost{position:absolute; inset:34px}
+  #landPage{position:absolute; inset:0; z-index:35; display:none; background:var(--paper); overflow:hidden;
+    will-change:transform; box-shadow:0 0 120px rgba(0,0,0,.7)}
+  #landPage .ghost{position:absolute; inset:34px}
+  #landPage .edge{position:absolute; left:0; top:0; width:26px; height:100%;
+    background:linear-gradient(to right, rgba(120,92,50,.30), rgba(120,92,50,0))}
+  #coverDust{position:absolute; left:50%; top:52%; width:1700px; height:1700px; margin:-850px 0 0 -850px;
+    background:repeating-conic-gradient(from 0deg at 50% 50%,
+      rgba(253,248,234,.85) 0deg 1.4deg, rgba(253,248,234,0) 1.4deg 6.4deg);
+    -webkit-mask-image:radial-gradient(circle, transparent 24%, #000 36%, transparent 60%);
+    mask-image:radial-gradient(circle, transparent 24%, #000 36%, transparent 60%); opacity:0}
+  #coverSlabWrap{position:absolute; left:50%; top:50%; width:1240px; height:470px; margin:-235px 0 0 -620px; transform-origin:50% 50%}
+  #coverSlab{position:absolute; inset:0; background:var(--red); border:8px solid var(--ink);
+    box-shadow:22px 26px 0 rgba(8,6,5,.6); transform:rotate(-2.4deg);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; overflow:hidden}
+  #coverSlab .inner-keyline{position:absolute; inset:20px; border:3px solid rgba(253,248,234,.5)}
+  #coverSlab .grainline{position:absolute; inset:0;
+    background-image:radial-gradient(circle at 50% 50%, rgba(21,17,14,.55) 30%, transparent 32%);
+    background-size:6px 6px; opacity:.16; mix-blend-mode:multiply}
+  .cover-title{width:1150px; display:block}
+  .cover-title text{font-family:var(--display); text-anchor:middle}
+  .cover-title .ct-main{font-size:154px; letter-spacing:2px; fill:var(--paper); stroke:var(--ink); stroke-width:13; paint-order:stroke fill}
+  .cover-title .ct-shadow{font-size:154px; letter-spacing:2px; fill:#6d0b05}
+  .cover-sub{background:var(--ink); color:var(--paper); font-size:23px; letter-spacing:6px;
+    padding:8px 26px 9px; text-transform:uppercase; box-shadow:6px 6px 0 rgba(253,248,234,.25)}
+  .cover-foot{font-size:13px; letter-spacing:4px; color:#4b0a05; margin-top:2px}
+  #coverBadge{position:absolute; left:50%; top:50%; margin:-336px 0 0 436px; width:132px; height:132px;
+    background:var(--yellow); border:5px solid var(--ink); transform:rotate(9deg);
+    display:flex; align-items:center; justify-content:center; font-family:var(--display); font-size:56px;
+    color:#14110e; box-shadow:7px 7px 0 rgba(8,6,5,.5)}
+  #coverBadge .small{position:absolute; bottom:3px; font-size:11px; letter-spacing:1.5px}
+
+  /* print texture */
+  #grain{position:absolute; inset:0; width:1600px; height:900px; opacity:.26; mix-blend-mode:multiply; pointer-events:none; z-index:40}
+  #vignette{position:absolute; inset:0; pointer-events:none; z-index:41;
+    box-shadow:inset 0 0 240px 70px rgba(6,4,3,.78);
+    background:radial-gradient(120% 100% at 50% 50%, transparent 55%, rgba(6,4,3,.32) 100%)}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="backdrop"></div>
+  <div id="underPage"><div class="ghost" id="underGhost"></div></div>
+  <div id="flipStack"></div>
+
+  <div id="cam">
+    <div id="page">
+      <div class="stain"></div>
+      <div class="crease"></div>
+      <div class="crop tl"></div>
+      <div class="crop br"></div>
+
+      <div id="masthead">
+        <div class="mh-slab">INK &amp; THUNDER</div>
+        <div class="mh-right">
+          <span class="mh-no">NO. 1</span>
+          <span class="mh-meta">25&cent; &middot; AUGUST &middot; INK PRESS</span>
+        </div>
+      </div>
+      <div class="mh-rule"></div>
+
+      <section class="panel" id="panelA">
+        <div id="rays"></div>
+        <div class="halftone h2 mask"></div>
+        <div class="halftone mask"></div>
+
+        <svg class="city" viewBox="0 0 1432 220" preserveAspectRatio="none" aria-hidden="true">
+          <path class="far" d="M0,220 L0,150 L70,150 L70,120 L120,120 L120,150 L190,150 L190,96 L240,96 L240,140 L300,140 L300,175 L360,175 L360,118 L392,118 L392,175 L450,175 L450,140 L520,140 L520,96 L560,96 L560,140 L620,140 L620,170 L700,170 L700,132 L760,132 L760,170 L830,170 L830,140 L900,140 L900,108 L940,108 L940,140 L1000,140 L1000,168 L1080,168 L1080,134 L1140,134 L1140,168 L1210,168 L1210,120 L1250,120 L1250,168 L1320,168 L1320,146 L1432,146 L1432,220 Z"/>
+          <path class="near" d="M0,220 L0,168 L58,168 L58,132 L112,132 L112,168 L158,168 L158,96 L196,96 L196,60 L206,60 L206,96 L232,96 L232,168 L288,168 L288,140 L352,140 L352,178 L404,178 L404,110 L444,110 L444,88 L470,88 L470,110 L510,110 L510,178 L566,178 L566,152 L620,152 L620,196 L676,196 L676,126 L706,126 L706,150 L760,150 L760,88 L790,88 L790,150 L840,150 L840,170 L900,170 L900,120 L950,120 L950,150 L1010,150 L1010,100 L1040,100 L1040,150 L1090,150 L1090,180 L1140,180 L1140,138 L1190,138 L1190,180 L1240,180 L1240,112 L1280,112 L1310,112 L1310,180 L1370,180 L1370,150 L1432,150 L1432,220 Z"/>
+          <path class="line" d="M201,60 L201,18 M462,88 L462,50 M948,120 L948,80"/>
+        </svg>
+        <div class="haze"></div>
+        <div class="halftone city"></div>
+        <div class="beam b1"></div>
+        <div class="beam b2"></div>
+
+        <div id="heroG2" class="ghostHero"></div>
+        <div id="heroG1" class="ghostHero"></div>
+        <div id="hero" class="heroBox"></div>
+
+        <div class="cap" id="cap1"><span class="cap-txt"></span></div>
+        <div class="balloon" id="bal1">NOT TODAY, DOOM-BOT!</div>
+        <div class="balloon" id="bal2">SEE YOU NEXT ISSUE!</div>
+        <div class="cap" id="cap2"><span class="cap-txt"></span></div>
+      </section>
+
+      <section class="panel" id="panelB">
+        <div class="halftone h2"></div>
+        <div class="sun"></div>
+        <div class="sun-dots"></div>
+        <svg class="trail" viewBox="0 0 280 70" aria-hidden="true"><path d="M4,58 C70,12 170,4 276,26"/></svg>
+        <div class="minihero" id="minihero"></div>
+        <svg class="roof" viewBox="0 0 1432 190" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0,190 L0,120 L210,120 L210,96 L232,96 L232,120 L520,120 L520,132 L760,132 L760,84 L790,84 L790,132 L1000,132 L1000,112 L1250,112 L1250,126 L1432,126 L1432,190 Z"/>
+          <path d="M96,120 L96,96 L120,96 L120,120 Z"/>
+          <path d="M1180,112 L1180,66 L1216,66 L1216,112 Z"/>
+          <path d="M1340,126 L1340,88 L1372,88 L1372,126 Z"/>
+        </svg>
+        <svg class="roof" style="height:40%;z-index:4" viewBox="0 0 1432 90" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0,90 L0,60 L180,60 L180,38 L330,38 L330,60 L700,60 L700,44 L900,44 L900,60 L1180,60 L1180,30 L1220,30 L1220,60 L1432,60 L1432,90 Z"/>
+        </svg>
+        <div class="cap" id="capB"><span class="cap-txt"></span></div>
+      </section>
+
+      <div id="banner">
+        <span class="star">&#9733;</span>
+        <span class="next">NEXT ISSUE:</span>
+        <span class="title">ENTER &mdash; THE DOOM-BOT!</span>
+        <span class="price">STILL 25&cent;</span>
+      </div>
+
+      <div id="burst">
+        <div class="bghost" id="bghost1"></div>
+        <div class="bghost" id="bghost2"></div>
+        <svg viewBox="0 0 400 260" aria-hidden="true">
+          <path class="star-ink" fill="#14110e"/>
+          <path class="star-fill" fill="#ffc81f"/>
+        </svg>
+        <div class="btext" id="burstText"></div>
+      </div>
+
+      <div id="ring1" class="ring"></div>
+      <div id="ring2" class="ring"></div>
+      <div id="sparks"></div>
+      <div id="shards"></div>
+
+      <div id="ghostA" class="ghostHero"></div>
+      <div id="ghostB" class="ghostHero"></div>
+      <div id="heroX" class="heroBox"></div>
+    </div>
+  </div>
+
+  <div id="cover">
+    <div id="cover-dim"></div>
+    <div id="coverGlow"></div>    <div id="coverDust"></div>
+    <div id="coverSlabWrap">
+      <div id="coverSlab">
+        <div class="grainline"></div>
+        <div class="inner-keyline"></div>
+        <svg class="cover-title" viewBox="0 0 1160 210">
+          <text class="ct-shadow" x="588" y="166">INK &amp; THUNDER</text>
+          <text class="ct-main" x="580" y="158">INK &amp; THUNDER</text>
+        </svg>
+        <div class="cover-sub">A superhero comic come to life</div>
+        <div class="cover-foot">INK PRESS &middot; 4 ISSUES A YEAR &middot; PRINTED IN THE USA</div>
+      </div>
+    </div>
+    <div id="coverBadge">25&cent;<span class="small">U.S. ONLY</span></div>
+  </div>
+
+  <div id="flash"></div>
+  <div id="landPage"><div class="ghost" id="landGhost"></div><div class="edge"></div></div>
+  <canvas id="grain" width="1600" height="900"></canvas>
+  <div id="vignette"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var T = 16.0;
+  var $ = function(id){ return document.getElementById(id); };
+  var stage=$("stage"), cam=$("cam"), page=$("page"), cover=$("cover"), flipStack=$("flipStack"),
+      panelA=$("panelA"), hero=$("hero"), heroX=$("heroX"), burst=$("burst"),
+      ghostA=$("ghostA"), ghostB=$("ghostB"),
+      bal1=$("bal1"), bal2=$("bal2"), cap1=$("cap1"), cap2=$("cap2"), capB=$("capB"),
+      flash=$("flash"), underPage=$("underPage"), coverGlow=$("coverGlow"), landPage=$("landPage"),
+      heroG1=$("heroG1"), heroG2=$("heroG2");
+
+  /* ---------------- math ---------------- */
+  function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+  function c01(v){ return clamp(v,0,1); }
+  function sg(t,a,b){ return c01((t-a)/(b-a)); }
+  function lerp(a,b,p){ return a+(b-a)*p; }
+  function eOut(p){ return 1-Math.pow(1-p,3); }
+  function eOut5(p){ return 1-Math.pow(1-p,5); }
+  function eIn(p){ return p*p; }
+  function eInOut(p){ return p<0.5 ? 4*p*p*p : 1-Math.pow(-2*p+2,3)/2; }
+  function eBack(p){ var s=1.9; return 1+(s+1)*Math.pow(p-1,3)+s*Math.pow(p-1,2); }
+  function kf(t, pts){
+    if(t<=pts[0].t) return pts[0].v;
+    for(var i=1;i<pts.length;i++){
+      if(t<=pts[i].t){
+        var a=pts[i-1], b=pts[i], e=b.e||eOut;
+        return lerp(a.v,b.v,e((t-a.t)/(b.t-a.t)));
+      }
+    }
+    return pts[pts.length-1].v;
+  }
+  function rnd(seed){ var x=Math.sin(seed*127.1+311.7)*43758.5453; return x-Math.floor(x); }
+
+  /* ---------------- public domain hero silhouette ---------------- */
+  var CAPE_D = "M387.71 428.86c-87.92-45.94-198.75-22.21-284.25 36.08-46.058 31.39-103.72 52.99-136.35 98.04-37.939 52.38 43.376 51.4 79.508 37.2 64.202-25.24 34.773 85.12 88.122 82.28 61.22-3.27 92.17 2.23 135.16-49.78 36.32-43.94 110.65-23.75 137.29-84.52 9.48-23.05 18.57-47.28 34.57-66.62";
+  var BODY_D = "M288.57 406.65c-56.74 7.11-210.92 69.58-155.55 115.74 55.36 46.16 191.83-89.57 158.78-31-35.6 63.09-226.51 110.14-132.3 194.76 46.04 41.34 160-179.83 144.22-27.43-11.79 113.9 120.98 40.6 98.86-49.65-24.49-99.91 116.12-142.71 179.07-207.22 69.84-71.56-40-116.47-76.93-35.75-18.94 41.4-82.38 28.48-124.72 34.83";
+  var HEAD_D = "M437.14 369.51a85.714 80 0 1 1-171.43 0 85.714 80 0 1 1 171.43 0z";
+  var HERO_SVG =
+    '<svg viewBox="-60 275 690 460" preserveAspectRatio="xMidYMid meet" aria-hidden="true">' +
+      '<g stroke="#f2e7d0" stroke-width="11" stroke-linejoin="round" stroke-linecap="round">' +
+        '<path fill="#df2816" d="'+CAPE_D+'"/>' +
+        '<path fill="#15110e" d="'+BODY_D+'"/>' +
+        '<circle fill="#15110e" cx="351.4" cy="369.5" r="85.7"/>' +
+      '</g>' +
+    '</svg>';
+  hero.innerHTML = HERO_SVG;
+  heroX.innerHTML = HERO_SVG;
+  ghostA.innerHTML = HERO_SVG;
+  ghostB.innerHTML = HERO_SVG;
+  $("minihero").innerHTML = HERO_SVG;
+
+  /* ---------------- page flip sheets ---------------- */
+  var SKYLINE = "polygon(0% 100%,0% 62%,7% 62%,7% 44%,13% 44%,13% 62%,19% 62%,19% 30%,23% 30%,23% 18%,25% 18%,25% 30%,29% 30%,29% 62%,35% 62%,35% 50%,42% 50%,42% 72%,49% 72%,49% 40%,54% 40%,54% 26%,58% 26%,58% 40%,64% 40%,64% 72%,70% 72%,70% 58%,76% 58%,76% 76%,83% 76%,83% 46%,88% 46%,88% 62%,93% 62%,93% 52%,98% 52%,98% 62%,100% 62%,100% 100%)";
+  function sparkleClip(n){
+    var pts=[];
+    for(var i=0;i<n*2;i++){
+      var a=(i/(n*2))*Math.PI*2, rad=(i%2===0?50:32);
+      pts.push((50+Math.cos(a)*rad).toFixed(1)+"% "+(50+Math.sin(a)*rad).toFixed(1)+"%");
+    }
+    return "polygon("+pts.join(",")+")";
+  }
+  var STAR_CLIP = sparkleClip(13);
+  var GP_CAPS=["THE CITY NEVER SLEEPS\u2026","THE SKY SPLIT OPEN."];
+  function ghostPageHTML(i){
+    var v=i%2;
+    return '<div class="gp-head">'+
+        '<div class="gp-mast">INK &amp; THUNDER</div>'+
+        '<div class="gp-no">NO. 1</div>'+
+        '<div class="gp-meta">25&cent; &middot; AUGUST &middot; INK PRESS</div>'+
+      '</div>'+
+      '<div class="gp-panel" style="left:0;top:88px;width:59%;height:54%;background:linear-gradient(#8fd2df,#f8ddae)">'+
+        '<div class="gp-dots"></div>'+
+        '<div class="gp-city" style="clip-path:'+SKYLINE+'"></div>'+
+        '<div class="gp-cap">'+GP_CAPS[v]+'</div>'+
+        '<div class="gp-cap" style="left:auto;right:14px;top:60%;background:#fdf8ea;max-width:46%;font-family:var(--letter);font-weight:700;font-size:15px">'+
+          (v ? "LOOK OUT BELOW!" : "NOT TODAY!")+'</div>'+
+      '</div>'+
+      '<div class="gp-panel" style="right:0;top:88px;width:38.5%;height:54%;background:#df2816">'+
+        '<div class="gp-dots" style="opacity:.14"></div>'+
+        '<div class="gp-star" style="clip-path:'+STAR_CLIP+'"></div>'+
+        '<div class="gp-pow">'+(v?"KA-BOOM!":"POW!")+'</div>'+
+      '</div>'+
+      '<div class="gp-panel" style="left:0;bottom:0;width:100%;height:26%;background:linear-gradient(#f2cd8f,#e7b06b)">'+
+        '<div class="gp-dots"></div>'+
+        '<div class="gp-city" style="height:52%;clip-path:'+SKYLINE+'"></div>'+
+        '<div class="gp-cap">TO BE CONTINUED\u2026</div>'+
+      '</div>';
+  }
+  $("underGhost").innerHTML = ghostPageHTML(0);
+  $("landGhost").innerHTML = ghostPageHTML(0);
+
+  var SHEETS=7, sheets=[];
+  for(var i=0;i<SHEETS;i++){
+    var s=document.createElement("div"); s.className="sheet";
+    var g=document.createElement("div"); g.className="ghost";
+    g.innerHTML = ghostPageHTML(i);
+    s.appendChild(g);
+    var edge=document.createElement("div"); edge.className="edge"; s.appendChild(edge);
+    flipStack.appendChild(s); sheets.push(s);
+  }
+  var flips=[
+    {k:0,s:0.00,d:0.96},{k:1,s:0.56,d:0.90},{k:2,s:1.16,d:0.92},
+    {k:3,s:13.10,d:0.90},{k:6,s:13.95,d:0.90},{k:1,s:14.60,d:0.90}
+  ];
+
+  /* ---------------- burst star ---------------- */
+  function starPoly(cx,cy,R,r,n,seed,twist){
+    var out=[];
+    for(var i=0;i<n*2;i++){
+      var a=(i/(n*2))*Math.PI*2+twist;
+      var wob=1+0.10*Math.sin(i*2.3+seed)+0.055*Math.sin(i*5.7+seed*2.1);
+      var rad=(i%2===0?R:r)*wob;
+      out.push((cx+Math.cos(a)*rad).toFixed(1)+","+(cy+Math.sin(a)*rad).toFixed(1));
+    }
+    return out;
+  }
+  function polyPath(pts){ return "M"+pts.join("L")+"Z"; }
+  burst.querySelector(".star-ink").setAttribute("d", polyPath(starPoly(200,130,196,120,21,1.0,0.1)));
+  burst.querySelector(".star-fill").setAttribute("d", polyPath(starPoly(200,130,174,102,21,1.0,0.1)));
+  /* offset printing plates for a moment of mis-registration */
+  $("bghost1").innerHTML='<svg viewBox="0 0 400 260"><path fill="#59c7d9" d="'+polyPath(starPoly(200,130,190,116,21,1.0,0.1))+'"/></svg>';
+  $("bghost2").innerHTML='<svg viewBox="0 0 400 260"><path fill="#e0201b" d="'+polyPath(starPoly(200,130,190,116,21,1.0,0.1))+'"/></svg>';
+
+  var burstText=$("burstText"), letters="KA-KRAKOOM!".split(""), lspans=[];
+  letters.forEach(function(ch){
+    var sp=document.createElement("span");
+    sp.textContent = ch==="-" ? "\u2013" : ch;
+    burstText.appendChild(sp); lspans.push(sp);
+  });
+
+  /* ---------------- sparks & shards ---------------- */
+  var sparkDefs=[];
+  for(var si=0;si<8;si++){
+    var el=document.createElement("div"); el.className="spark";
+    var pts=starPoly(22,22,21,8,5,si+2,0.3+si*0.7);
+    el.style.clipPath="polygon("+pts.map(function(p){
+      return p.split(",").map(function(v){return v+"px";}).join(" ");
+    }).join(",")+")";
+    el.style.webkitClipPath=el.style.clipPath;
+    $("sparks").appendChild(el);
+    sparkDefs.push({el:el, ang:(si/8)*Math.PI*2+0.4, dist:220+rnd(si)*160, spin:rnd(si*3)*220-110});
+  }
+  var shardDefs=[];
+  for(var sh=0;sh<6;sh++){
+    var sd=document.createElement("div"); sd.className="shard";
+    sd.style.clipPath="polygon(0% 100%, "+Math.round(20+rnd(sh)*60)+"% 0%, 100% 100%)";
+    $("shards").appendChild(sd);
+    shardDefs.push({el:sd, x:1010+rnd(sh*3)*90, y:60+rnd(sh*5)*40,
+      vx:60+rnd(sh*7)*260, vy:-190-rnd(sh*11)*160, rot:rnd(sh*13)*360-180});
+  }
+
+    /* ---------------- speed lines ---------------- */
+  /* (retired: the hero now leaves afterimages instead) */
+
+  /* ---------------- newsprint grain ---------------- */
+  (function(){
+    var cv=$("grain"), ctx=cv.getContext("2d");
+    var w=1600,h=900,img=ctx.createImageData(w,h),d=img.data;
+    for(var i=0;i<w*h;i++){
+      var v=198+Math.random()*57;
+      d[i*4]=v; d[i*4+1]=v; d[i*4+2]=v*0.97; d[i*4+3]=255;
+    }
+    ctx.putImageData(img,0,0);
+    for(var s=0;s<14;s++){
+      var x=Math.random()*w, y=Math.random()*h, r=60+Math.random()*260;
+      var gr=ctx.createRadialGradient(x,y,0,x,y,r);
+      gr.addColorStop(0,"rgba(128,96,52,"+(0.05+Math.random()*0.05).toFixed(3)+")");
+      gr.addColorStop(1,"rgba(128,96,52,0)");
+      ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    }
+  })();
+
+  /* ---------------- captions ---------------- */
+  var CAP1="MEANWHILE, ABOVE THE SLEEPING CITY\u2026";
+  var CAP2="THE INK COULD NOT HOLD HIM.";
+  var CAPB="SOMEWHERE OUT THERE, THE DOOM-BOT IS STILL RUNNING.";
+  cap1.querySelector(".cap-txt").textContent="";
+  cap2.querySelector(".cap-txt").textContent="";
+  capB.querySelector(".cap-txt").textContent="";
+
+  function caption(el, full, t, t0, typeDur, tHide, rot){
+    if(t < t0-0.22 || t > tHide+0.26){ el.style.opacity="0"; return; }
+    var p=c01((t-t0)/typeDur);
+    var n=Math.min(full.length, p>=0.999 ? full.length : Math.floor(full.length*Math.pow(p,0.85)));
+    el.querySelector(".cap-txt").textContent=full.slice(0,n);
+    var pin=eBack(c01((t-(t0-0.2))/0.26));
+    var pout=sg(t,tHide,tHide+0.24);
+    el.style.opacity=String((1-pout)*c01((t-(t0-0.2))/0.12));
+    el.style.transform="rotate("+rot+"deg) scale("+(0.78+0.22*pin).toFixed(3)+")";
+  }
+
+  /* ---------------- render ---------------- */
+  function render(t){
+    /* flip sheets */
+    for(var i=0;i<sheets.length;i++){ sheets[i].style.display="none"; }
+    flipStack.style.zIndex = (t>=13.72 && t<15.02) ? "4" : "10";
+    for(var f=0;f<flips.length;f++){
+      var ev=flips[f];
+      if(t>=ev.s && t<=ev.s+ev.d){
+        var shEl=sheets[ev.k], p=(t-ev.s)/ev.d;
+        shEl.style.display="block";
+        shEl.style.opacity="1";
+        shEl.style.zIndex = ev.land ? "11" : "1";
+        if(ev.land){
+          shEl.style.transform="rotateY("+(-172*(1-eInOut(p))).toFixed(2)+"deg) translateZ(0)";
+          shEl.style.boxShadow="0 0 110px rgba(0,0,0,"+(0.5+0.4*Math.sin(Math.PI*Math.min(p,0.999))).toFixed(2)+")";
+        } else {
+          shEl.style.transform="rotateY("+(-172*eInOut(p)).toFixed(2)+"deg) translateZ(0)";
+          shEl.style.opacity = p>0.965?"0":"1";
+          shEl.style.boxShadow="0 0 110px rgba(0,0,0,"+(0.5+0.4*Math.sin(Math.PI*Math.min(p,0.999))).toFixed(2)+")";
+        }
+      }
+    }
+
+    /* the page that sits under the opening title */
+    var underShow = t<2.12;
+    underPage.style.display = underShow ? "block" : "none";
+    if(underShow){
+      underPage.style.opacity = String(1-sg(t,1.98,2.10));
+    }
+
+    /* the final page slides in and closes the book */
+    if(t>=15.10){
+      var lp=c01((t-15.10)/0.62);
+      var lpx=(1-eOut5(lp))*112, lpr=(1-eOut5(lp))*-3.5;
+      landPage.style.display="block";
+      landPage.style.transform="translateX("+lpx.toFixed(2)+"%) rotate("+lpr.toFixed(2)+"deg)";
+    } else landPage.style.display="none";
+
+    /* cover: slams over the flipping pages — at the start and again as the book closes */
+    var coverWin1 = t>=0.10 && t<=2.36;
+    var coverWin2 = t>=13.72;
+    if(coverWin1 || coverWin2){
+      var t0 = coverWin1 ? 0.10 : 13.72;
+      var inP = eOut5(c01((t-t0)/0.46));
+      var outP = coverWin1 ? sg(t,2.02,2.34) : 0;
+      var shake=(t>t0+0.06?24*Math.exp(-(t-t0-0.06)*7):0)+(coverWin1&&t>2.0?8*Math.exp(-(t-2.0)*6):0);
+      cover.style.display="block";
+      cover.style.zIndex = coverWin1 ? "30" : "5";
+      cover.style.opacity = String(coverWin1 ? 1-sg(t,2.20,2.34) : 1);
+      cover.style.transform="translate("+(shake*Math.sin(t*90)).toFixed(1)+"px,"+(shake*Math.cos(t*77)-outP*920).toFixed(1)+"px)";
+      $("coverSlabWrap").style.transform="scale("+lerp(2.55,1,inP).toFixed(3)+") rotate("+lerp(-13,-2.4,eOut(c01((t-t0)/0.5))).toFixed(2)+"deg)";
+      $("coverDust").style.opacity=String(0.95*Math.pow(c01(1-(t-t0)/0.9),1.5));
+      $("coverDust").style.transform="rotate("+(t*36).toFixed(1)+"deg)";
+      coverGlow.style.opacity=String(0.55+0.25*Math.sin(t*1.4));
+      var bp=eBack(c01((t-t0-0.42)/0.34));
+      $("coverBadge").style.transform="rotate("+lerp(26,9,eOut(c01((t-t0-0.42)/0.4))).toFixed(1)+"deg) scale("+(0.001+bp).toFixed(3)+")";
+    } else { cover.style.display="none"; }
+
+    /* page in / out */
+    if(t>=2.03 && t<=13.80){
+      page.style.display="block";
+      var exitP=sg(t,12.90,13.62);
+      var py=lerp(700,0,eOut5(sg(t,2.05,2.92)))+exitP*280;
+      var pr=lerp(-4.5,1.0,eOut(sg(t,2.05,2.95)))+exitP*4.5;
+      page.style.transform="translateY("+py.toFixed(1)+"px) rotate("+pr.toFixed(2)+"deg) scale("+(1-exitP*0.07).toFixed(4)+")";
+      page.style.opacity=String(c01((t-2.03)/0.09)*(1-sg(t,13.18,13.62)));
+    } else { page.style.display="none"; }
+
+    /* camera: gentle */
+    var camS=kf(t,[
+      {t:2.7,v:1.0},{t:5.9,v:1.0},{t:7.7,v:1.045,e:eInOut},{t:8.8,v:1.015},
+      {t:10.3,v:1.015},{t:12.55,v:1.04,e:eInOut},{t:13.45,v:1.0}
+    ]);
+    var camOY=lerp(46,56,eInOut(sg(t,10.3,12.55)));
+    var imp=t>7.70?32*Math.exp(-(t-7.70)*4.0):0;
+    var slam=(t>0.16&&t<1.6)?14*Math.exp(-(t-0.16)*5.2):0;
+    var amp=imp+slam;
+    cam.style.transform="translate("+((amp*Math.sin(t*97.3)*0.9)+2.4*Math.sin(t*0.55)).toFixed(2)+"px,"+(amp*Math.cos(t*81.7+1.2)*0.8).toFixed(2)+"px) scale("+camS.toFixed(4)+")";
+    cam.style.transformOrigin="50% "+camOY.toFixed(1)+"%";
+
+    /* halftone shimmer */
+    var dots=document.querySelectorAll(".halftone");
+    for(var d=0;d<dots.length;d++){
+      var isH2=dots[d].classList.contains("h2"), bs=isH2?15:(dots[d].classList.contains("city")?6:15);
+      var off=isH2?7.5:0;
+      dots[d].style.backgroundPosition=(off+t*3.2%bs).toFixed(2)+"px "+(off+t*1.6%bs).toFixed(2)+"px";
+    }
+    $("rays").style.transform="rotate("+(t*6.2).toFixed(1)+"deg)";
+    var sun=document.querySelector("#panelB .sun");
+    sun.style.transform="scale("+(1+0.04*Math.sin(t*1.7)).toFixed(4)+")";
+
+    caption(cap1, CAP1, t, 2.95, 1.5, 7.30, -1.4);
+    caption(cap2, CAP2, t, 10.40, 1.35, 13.4, 1.1);
+    caption(capB, CAPB, t, 12.12, 1.0, 13.30, -0.8);
+
+    /* hero inside the panel */
+    function heroAt(tt){
+      var x=kf(tt,[
+        {t:3.40,v:-660,e:eOut},{t:4.90,v:-92,e:eInOut},{t:5.55,v:0},
+        {t:6.85,v:-26},{t:7.40,v:-66,e:eIn},{t:7.86,v:86,e:eOut5}
+      ]);
+      var y=kf(tt,[
+        {t:3.40,v:150,e:eOut},{t:4.90,v:18},{t:5.55,v:-6},
+        {t:6.85,v:-14},{t:7.40,v:26,e:eIn},{t:7.86,v:-4}
+      ])+(tt>5.4&&tt<7.4?6*Math.sin((tt-5.4)*4.4):0);
+      var r=kf(tt,[
+        {t:3.40,v:-18},{t:4.90,v:-8},{t:5.55,v:-3},{t:7.40,v:-12},{t:7.86,v:9}
+      ]);
+      var s=kf(tt,[
+        {t:3.40,v:0.78},{t:4.90,v:0.92},{t:5.55,v:1.0},{t:7.40,v:1.02},{t:7.86,v:1.07}
+      ]);
+      return {x:x,y:y,r:r,s:s};
+    }
+    function applyHero(el, st, op){
+      el.style.opacity=String(op);
+      el.style.transform="translate("+st.x.toFixed(1)+"px,"+st.y.toFixed(1)+"px) rotate("+st.r.toFixed(2)+"deg) scale("+st.s.toFixed(3)+")";
+    }
+    var hNow=heroAt(t), hPrev=heroAt(t-0.16);
+    var speed=c01(Math.abs(hNow.x-hPrev.x)/260);
+    var heroVisible = (t>3.3 && t<7.95);
+    hero.style.display = heroVisible ? "block" : "none";
+    heroG1.style.display = heroVisible ? "block" : "none";
+    heroG2.style.display = heroVisible ? "block" : "none";
+    if(heroVisible){
+      var hOp=c01((t-3.40)/0.35);
+      applyHero(hero, hNow, hOp);
+      applyHero(heroG1, heroAt(t-0.055), 0.26*speed*hOp);
+      applyHero(heroG2, heroAt(t-0.11), 0.14*speed*hOp);
+    }
+
+    /* hero breaking out of the panel and off the page */
+    function escapeAt(tt){
+      var ex=kf(tt,[{t:7.86,v:86},{t:8.20,v:300,e:eInOut},{t:8.60,v:620,e:eInOut},{t:9.45,v:1250,e:eIn}]);
+      var ey=kf(tt,[{t:7.86,v:-4},{t:8.20,v:-215,e:eInOut},{t:8.60,v:-230,e:eInOut},{t:9.45,v:-215,e:eIn}]);
+      var er=kf(tt,[{t:7.86,v:9},{t:8.20,v:24},{t:9.45,v:32}]);
+      var es=kf(tt,[{t:7.86,v:1.05},{t:8.20,v:1.14},{t:9.45,v:1.28}]);
+      return {x:ex,y:ey,r:er,s:es};
+    }
+    if(t>=7.86 && t<9.55){
+      var st=escapeAt(t), st1=escapeAt(t-0.055), st2=escapeAt(t-0.11);
+      heroX.style.display="block";
+      heroX.style.opacity=String(1-sg(t,9.15,9.5));
+      heroX.style.transform="translate("+st.x.toFixed(1)+"px,"+st.y.toFixed(1)+"px) rotate("+st.r.toFixed(2)+"deg) scale("+st.s.toFixed(3)+")";
+      ghostA.style.display="block"; ghostB.style.display="block";
+      ghostA.style.opacity=String(0.30*(1-sg(t,9.1,9.45)));
+      ghostB.style.opacity=String(0.16*(1-sg(t,9.1,9.45)));
+      ghostA.style.transform="translate("+st1.x.toFixed(1)+"px,"+st1.y.toFixed(1)+"px) rotate("+st1.r.toFixed(2)+"deg) scale("+st1.s.toFixed(3)+")";
+      ghostB.style.transform="translate("+st2.x.toFixed(1)+"px,"+st2.y.toFixed(1)+"px) rotate("+st2.r.toFixed(2)+"deg) scale("+st2.s.toFixed(3)+")";
+    } else {
+      heroX.style.display="none";
+      ghostA.style.display="none";
+      ghostB.style.display="none";
+    }
+
+    /* balloons */
+    function balloon(el,t0,t1,rotA){
+      if(t>t0 && t<t1+0.3){
+        var bp2=c01((t-t0)/0.42), bo=sg(t,t1,t1+0.24);
+        el.style.opacity=String(Math.min(1,bp2*2)*(1-bo));
+        el.style.transform="translateY("+(bo*40).toFixed(1)+"px) scale("+(0.35+0.65*eBack(bp2)).toFixed(3)+") rotate("+(rotA+bo*8).toFixed(1)+"deg)";
+      } else el.style.opacity="0";
+    }
+    balloon(bal1,5.45,6.95,-3);
+    balloon(bal2,10.60,12.10,2);
+
+    /* burst */
+    if(t>7.70 && t<10.55){
+      var p2=c01((t-7.72)/0.30);
+      var out=sg(t,10.15,10.55);
+      burst.style.opacity=String(Math.min(1,p2*3)*(1-out));
+      burst.style.transform="scale("+(lerp(2.3,1,eOut5(p2))*(1+out*0.3)).toFixed(3)+") rotate("+(lerp(8,-4,eOut(p2))+1.1*Math.sin(t*9)).toFixed(2)+"deg)";
+      var wob=(t>7.95?Math.exp(-(t-7.95)*3.0):1);
+      for(var li=0;li<lspans.length;li++){
+        var ph=li*0.55+t*7.0;
+        lspans[li].style.transform="translateY("+(Math.sin(ph)*2.4*wob*10).toFixed(2)+"px) rotate("+(Math.sin(ph*0.8+1)*3*wob*3).toFixed(2)+"deg) scale("+(1+Math.sin(t*8+li)*0.03*wob*6).toFixed(3)+")";
+      }
+    } else burst.style.opacity="0";
+
+    /* rings */
+    [[$("ring1"),0,2.2],[$("ring2"),0.13,2.6]].forEach(function(r){
+      var rp=sg(t,7.72+r[1],8.18+r[1]);
+      if(rp>0&&rp<1){
+        r[0].style.opacity=String((1-rp)*0.9);
+        r[0].style.transform="scale("+lerp(0.12,r[2],eOut(rp)).toFixed(3)+")";
+      } else r[0].style.opacity="0";
+    });
+
+    /* sparks */
+    sparkDefs.forEach(function(sp2){
+      var p3=sg(t,7.76,8.6);
+      if(p3>0&&p3<1){
+        var d2=sp2.dist*eOut(p3);
+        sp2.el.style.opacity=String((1-p3)*0.9);
+        sp2.el.style.transform="translate("+(Math.cos(sp2.ang)*d2).toFixed(1)+"px,"+((Math.sin(sp2.ang)*d2*0.8)+p3*40).toFixed(1)+"px) rotate("+(sp2.spin*p3).toFixed(1)+"deg) scale("+lerp(1.1,0.2,p3).toFixed(3)+")";
+      } else sp2.el.style.opacity="0";
+    });
+
+    /* paper shards */
+    shardDefs.forEach(function(shd,idx){
+      var p4=sg(t,7.82+idx*0.03,9.3);
+      if(p4>0&&p4<1){
+        var px=shd.x+shd.vx*p4, py2=shd.y+shd.vy*p4+320*p4*p4;
+        shd.el.style.opacity=String((1-p4)*0.95);
+        shd.el.style.left=px.toFixed(1)+"px"; shd.el.style.top=py2.toFixed(1)+"px";
+        shd.el.style.transform="rotate("+(shd.rot*p4).toFixed(1)+"deg) scale("+lerp(1.1,0.5,p4).toFixed(3)+")";
+      } else shd.el.style.opacity="0";
+    });
+
+    /* torn panel border */
+    /* (removed - the page break reads through the hero's exit + paper shards) */
+
+    /* flash */
+    var f1=t>7.70?Math.exp(-(t-7.70)*8.5)*0.95:0;
+    var f2=t>0.16?Math.exp(-(t-0.16)*13)*0.32:0;
+    flash.style.opacity=String(Math.max(0,Math.min(0.95,f1+f2)));
+
+    /* mis-registered print plates on the burst */
+    var mp = t>7.70 ? Math.exp(-(t-7.70)*3.4) : 0;
+    $("bghost1").style.opacity=String(mp*0.55);
+    $("bghost2").style.opacity=String(mp*0.5);
+    $("bghost1").style.transform="translate("+(-14*mp).toFixed(1)+"px,"+(-10*mp).toFixed(1)+"px)";
+    $("bghost2").style.transform="translate("+(12*mp).toFixed(1)+"px,"+(9*mp).toFixed(1)+"px)";
+
+    /* panel B mini hero */
+    var mh=$("minihero");
+    mh.style.transform="translate("+(Math.sin(t*1.3)*12).toFixed(1)+"px,"+(-Math.cos(t*1.05)*7).toFixed(1)+"px) rotate(-6deg)";
+  }
+
+  /* fit */
+  function fit(){
+    var s=Math.min(window.innerWidth/1600, window.innerHeight/900);
+    stage.style.transform="translate(-50%,-50%) scale("+s+")";
+  }
+  window.addEventListener("resize", fit); fit();
+
+  /* clock */
+  var tNow=0, playing=true, last=performance.now();
+  function loop(now){
+    var dt=(now-last)/1000; last=now;
+    if(playing) tNow=(tNow+Math.min(dt,0.1))%T;
+    render(tNow);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  window.addEventListener("click", function(){ tNow=0; playing=true; last=performance.now(); });
+  window.addEventListener("keydown", function(e){
+    if(e.code==="Space"){ e.preventDefault(); playing=!playing; last=performance.now(); }
+  });
+
+  window.__seek=function(t){ playing=false; tNow=((t%T)+T)%T; render(tNow); last=performance.now(); return tNow; };
+  window.__play=function(){ playing=true; last=performance.now(); };
+  window.__duration=T;
+  render(0);
+  window.__ready=true;
+})();
+</script>
+</body>
+</html>
