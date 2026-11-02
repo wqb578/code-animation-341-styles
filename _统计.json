@@ -1,16 +1,18 @@
 {
- "total": 341,
- "withStill": 193,
- "bySeries": {
-  "AG": 26,
-  "M": 40,
-  "K": 38,
-  "Z": 15,
-  "H": 12,
-  "L": 59,
-  "V": 15,
-  "X": 31,
-  "R": 7,
-  "O": 98
- }
+  "total": 341,
+  "withStill": 193,
+  "bySeries": {
+    "AG": 26,
+    "M": 40,
+    "K": 38,
+    "Z": 15,
+    "H": 12,
+    "L": 59,
+    "V": 15,
+    "X": 31,
+    "R": 7,
+    "O": 98
+  },
+  "withAnimatedPreview": 31,
+  "withPreview": 224
 }
