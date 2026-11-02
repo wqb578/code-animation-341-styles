@@ -1,0 +1,166 @@
+{
+  "repository": "https://github.com/Changroro/code-video",
+  "commit": "03da4e3ab149c4134a9a72eec499e1a2a41601ea",
+  "license_file": "第三方许可/code-video_LICENSE.txt",
+  "kind": "original-project GIF demonstrations; copied without modification",
+  "styles": {
+    "X1": {
+      "file": "动画预览/X_code-video/handdrawn.gif",
+      "source_path": "docs/gallery/handdrawn.gif"
+    },
+    "X2": {
+      "file": "动画预览/X_code-video/motion.gif",
+      "source_path": "docs/gallery/motion.gif"
+    },
+    "X3": {
+      "file": "动画预览/X_code-video/sand.gif",
+      "source_path": "docs/gallery/sand.gif"
+    },
+    "X4": {
+      "file": "动画预览/X_code-video/lyric.gif",
+      "source_path": "docs/gallery/lyric.gif"
+    },
+    "X5": {
+      "file": "动画预览/X_code-video/beat.gif",
+      "source_path": "docs/gallery/beat.gif"
+    },
+    "X6": {
+      "file": "动画预览/X_code-video/uimorph.gif",
+      "source_path": "docs/gallery/uimorph.gif"
+    },
+    "X7": {
+      "file": "动画预览/X_code-video/comic.gif",
+      "source_path": "docs/gallery/comic.gif"
+    },
+    "X8": {
+      "file": "动画预览/X_code-video/scrapbook.gif",
+      "source_path": "docs/gallery/scrapbook.gif"
+    },
+    "X9": {
+      "file": "动画预览/X_code-video/collage.gif",
+      "source_path": "docs/gallery/collage.gif"
+    },
+    "X10": {
+      "file": "动画预览/X_code-video/particles.gif",
+      "source_path": "docs/gallery/particles.gif"
+    },
+    "X11": {
+      "file": "动画预览/X_code-video/splitflap.gif",
+      "source_path": "docs/gallery/splitflap.gif"
+    },
+    "X12": {
+      "file": "动画预览/X_code-video/neon.gif",
+      "source_path": "docs/gallery/neon.gif"
+    },
+    "X13": {
+      "file": "动画预览/X_code-video/arcade.gif",
+      "source_path": "docs/gallery/arcade.gif"
+    },
+    "X14": {
+      "file": "动画预览/X_code-video/terminal.gif",
+      "source_path": "docs/gallery/terminal.gif"
+    },
+    "X15": {
+      "file": "动画预览/X_code-video/thermal.gif",
+      "source_path": "docs/gallery/thermal.gif"
+    },
+    "X16": {
+      "file": "动画预览/X_code-video/transit.gif",
+      "source_path": "docs/gallery/transit.gif"
+    },
+    "X17": {
+      "file": "动画预览/X_code-video/blueprint.gif",
+      "source_path": "docs/gallery/blueprint.gif"
+    },
+    "X18": {
+      "file": "动画预览/X_code-video/comicbook.gif",
+      "source_path": "docs/gallery/comicbook.gif"
+    },
+    "X19": {
+      "file": "动画预览/X_code-video/documentary.gif",
+      "source_path": "docs/gallery/documentary.gif"
+    },
+    "X20": {
+      "file": "动画预览/X_code-video/museum.gif",
+      "source_path": "docs/gallery/museum.gif"
+    },
+    "X21": {
+      "file": "动画预览/X_code-video/news.gif",
+      "source_path": "docs/gallery/news.gif"
+    },
+    "X22": {
+      "file": "动画预览/X_code-video/detective.gif",
+      "source_path": "docs/gallery/detective.gif"
+    },
+    "X23": {
+      "file": "动画预览/X_code-video/storybook.gif",
+      "source_path": "docs/gallery/storybook.gif"
+    },
+    "X24": {
+      "file": "动画预览/X_code-video/rpg.gif",
+      "source_path": "docs/gallery/rpg.gif"
+    },
+    "X25": {
+      "file": "动画预览/X_code-video/weather.gif",
+      "source_path": "docs/gallery/weather.gif"
+    },
+    "X26": {
+      "file": "动画预览/X_code-video/infomercial.gif",
+      "source_path": "docs/gallery/infomercial.gif"
+    },
+    "X27": {
+      "file": "动画预览/X_code-video/sports.gif",
+      "source_path": "docs/gallery/sports.gif"
+    },
+    "X28": {
+      "file": "动画预览/X_code-video/manual.gif",
+      "source_path": "docs/gallery/manual.gif"
+    },
+    "X29": {
+      "file": "动画预览/X_code-video/whiteboard.gif",
+      "source_path": "docs/gallery/whiteboard.gif"
+    },
+    "X30": {
+      "file": "动画预览/X_code-video/trailer.gif",
+      "source_path": "docs/gallery/trailer.gif"
+    },
+    "X31": {
+      "file": "动画预览/X_code-video/mathlecture.gif",
+      "source_path": "docs/gallery/mathlecture.gif"
+    }
+  },
+  "sha256": {
+    "动画预览/X_code-video/arcade.gif": "a5a9476509e1ddd8cb76cc4399ed5cfecf5b1439238f4c262c2c2f038b714c64",
+    "动画预览/X_code-video/beat.gif": "790f2f5ee9941182c02ca2f1d2b8feb1992eb88093961c720335be4cbf774e87",
+    "动画预览/X_code-video/blueprint.gif": "9d3e00d92c986d9986e7858f547be25238b4dd9caab05915aaedb0df92117394",
+    "动画预览/X_code-video/collage.gif": "449e52d48ac422b1fda0df78a04915114b42142fd9d8766edfa63bef8ede701d",
+    "动画预览/X_code-video/comic.gif": "d7a7a64c5a745379b4cd37a881bec2cd2b0c6e8d7299e1f5540ebc5186f5fb7e",
+    "动画预览/X_code-video/comicbook.gif": "992e2a33199334a45a333673a8cc6384554f887f5572889ed23623b27361cd5d",
+    "动画预览/X_code-video/detective.gif": "59964aaf4a028fb2184ae6920e7b9b3dc60af4f3216772fdc32f636da54fa569",
+    "动画预览/X_code-video/documentary.gif": "a9c191f3742161e9504d20112da82e51bdf2da66d794bcf72676cd77b3d06343",
+    "动画预览/X_code-video/handdrawn.gif": "20c5373e232e8243d3d4edb33a0b076f24b8c6892d2b8b30490457ff26123f74",
+    "动画预览/X_code-video/infomercial.gif": "c0d4a9dc7cbfacaca6beb0586cf8e9662cca3141b2e040b11efbb306fdf724e0",
+    "动画预览/X_code-video/lyric.gif": "4296d3f88452f6f91f961c8ad8b853ea9f8cde76dae150944f8dc2c0b170ae70",
+    "动画预览/X_code-video/manual.gif": "ddad5d34affd2a46132eb21d7b770d1e9ca416ad5eb07c9d1fb38a0fabf15eb0",
+    "动画预览/X_code-video/mathlecture.gif": "aa60b847bdcb2d494e5317bf47c4e085201ba5a414b9697ed4e455255220404d",
+    "动画预览/X_code-video/motion.gif": "5c22d03f7a3bfbb5a40e61422830d53539df33d07ac87e224b02ce69dfaee58d",
+    "动画预览/X_code-video/museum.gif": "133fbb796021db9d514aa3523345acc542bcdd62fad4dc867b616b1ba4a823f1",
+    "动画预览/X_code-video/neon.gif": "7d0d973ba5224c8f6d9d288f4cce5f97a95c5e07336f0bdf6f5c7bf428aea286",
+    "动画预览/X_code-video/news.gif": "0976af12814d7b44b0787b5d956eb111525a7288c2975aeaaf8e9d8154aef670",
+    "动画预览/X_code-video/particles.gif": "2a1fe868a8bddd66f192ba4aad104190ab733b3e893a46394a7c105af6f7a1f3",
+    "动画预览/X_code-video/rpg.gif": "706ecccb72b7d61c44fe0a012be481626d650b0ec1fa56b69b74574416fb00b0",
+    "动画预览/X_code-video/sand.gif": "544bf5c6eba88c19fc9c93e64c016c44ebf1088b21d40f1da0578eae269cd21a",
+    "动画预览/X_code-video/scrapbook.gif": "de60ce6db77df83b7e4615017bf58198b41717ee76162d39379445c330bbf630",
+    "动画预览/X_code-video/splitflap.gif": "582760b3feaa53f0baa406679c4dfd907085ec4e6834eca2f44e74507137842a",
+    "动画预览/X_code-video/sports.gif": "e28efcc1380a948d0f727c50726dd57469ece5fcf027e0e3c907e657f14aba37",
+    "动画预览/X_code-video/storybook.gif": "e5579079491cbd660521b09bf67350ac80862406ede172143a32fb50f2f6a742",
+    "动画预览/X_code-video/terminal.gif": "472fac92b58ce9c96e924b7ea0d5fdc084be0aacd268fc9310377c97e7398b2c",
+    "动画预览/X_code-video/thermal.gif": "c1ec936931f3cb22ce5bad0fc67ddca4d17499301929b3613433fbf03c474c92",
+    "动画预览/X_code-video/trailer.gif": "59a088c419c3c8ff832322e96a701a3df48f47b6cca648408e87ff3a4f217656",
+    "动画预览/X_code-video/transit.gif": "2ac5e400926b779479f38a94d016a469d98b1c37b356b8beaab7d8601a2f8fcd",
+    "动画预览/X_code-video/uimorph.gif": "e5f2bb5edbbe00918aee430278bd813e0598b95f30961ab2e438e555b382aaec",
+    "动画预览/X_code-video/weather.gif": "56360665bf77a6bf36b76a82a090934eed3cc73c43bc681351052765a22a5b32",
+    "动画预览/X_code-video/whiteboard.gif": "025b4e206ceb28b3a1aeb413262829cd1a97654d3f7d3a27a7d373a860fc9cc2",
+    "第三方许可/code-video_LICENSE.txt": "9bc61cd5e5b1a64bc9c036d5a944fcf5cfb433104fd4cd507896b6d09ea34c92"
+  }
+}
